@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Multi Note</string>
+    <string name="editMenu">editMenu</string>
+    <string name="itemAbout">itemAbout</string>
+    <string name="file_name">Notes.json</string>
+    <string name="no_file">No JSON Product File Present</string>
+    <string name="saved">Product Saved!</string>
+    <string name="encoding">UTF-8</string>
+    <string name="tv_notes_list_title">TextView_Title</string>
+    <string name="tv_notes_list_datetime">TextView</string>
+    <string name="tv_notes_list_text">TextView</string>
+    <string name="activity_edit_input">TextView</string>
+    <string name="activity_edit_text">TextView</string>
+    <string name="rn_save_menu">Item</string>
+    <string name="am_title">TextView</string>
+    <string name="textview_time">TextView</string>
+    <string name="inputTitle">Name</string>
+    <string name="inputNote">Name</string>
+</resources>
