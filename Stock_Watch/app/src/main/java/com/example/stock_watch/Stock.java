@@ -2,8 +2,9 @@ package com.example.stock_watch;
 
 import java.io.Serializable;
 
-// public class Stock {
-public class Stock implements Serializable{
+ public class Stock {
+//public class Stock implements Serializable{
+
 
     // Serializable needed to add as extra to intent
 

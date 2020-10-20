@@ -2,7 +2,9 @@ package com.example.stock_watch;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputFilter;
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity
     private DatabaseHandler databaseHandler;
     private final ArrayList<String[]> tempList = new ArrayList<>();
     private SwipeRefreshLayout swiper;
+
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,60 +87,50 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        loadFile();
     }
 
     @Override
     public void onClick(View v) {
 
+        int position = recyclerView.getChildLayoutPosition(v);
+        Stock s = stockList.get(position);
+
+        Intent chromeIntent = new Intent(Intent.ACTION_VIEW);
+        String url = "https://www.marketwatch.com/investing/stock/" + s.getSymbol();
+
+        chromeIntent.setData(Uri.parse(url));
+        startActivity(chromeIntent);
     }
 
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void loadFile() {
-
-        Log.d(TAG, "loadFile: Loading JSON File");
-
-        try {
-            InputStream is = getApplicationContext().
-                    openFileInput(getString(R.string.file_name));
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-            }
-
-            //      JSONObject jsonObject = new JSONObject(sb.toString());
-            JSONArray jsonArray = new JSONArray(sb.toString());
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                String name = jsonObject.getString("name");
-                String symbol = jsonObject.getString("symbol");
-                double lPrice = jsonObject.getDouble("latestPrice");
-                double priceChange = jsonObject.getDouble("change");
-                double changePercent = jsonObject.getDouble("changePercent");
-//            notepad.setTitle(name);
-                //           notepad.setDescription(desc);
-                //         notepad.setDate(ldate);
-                Stock stockload = new Stock(name, symbol, lPrice, priceChange, changePercent);
-                stockList.add(stockload);
-            }
-
-            mAdapter.notifyDataSetChanged();
-        } catch (FileNotFoundException e) {
-            Toast.makeText(this, getString(R.string.no_file), Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     public boolean onLongClick(View v) {
+        int  position = recyclerView.getChildLayoutPosition(v);
+         final Stock delStock = stockList.get(position);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setIcon(R.drawable.baseline_delete_black_24);
+        builder.setTitle("Delete Stock");
+        builder.setMessage("Delete Stock Symbol "+delStock.getSymbol()+"?");
+        builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                databaseHandler.deleteStock(delStock.getSymbol());
+                stockList.remove(delStock);
+                mAdapter.notifyDataSetChanged();
+            }
+        });
+        builder.setNegativeButton("No",new DialogInterface.OnClickListener(){
+            public void onClick(DialogInterface dialog,int id) {
+            }
+        });
+        AlertDialog dialog=builder.create();
+        dialog.show();
+
         return false;
     }
+
+
 
     public void updateData(HashMap<String, String> nameHM) {
 
@@ -173,6 +166,7 @@ public class MainActivity extends AppCompatActivity
     // option menu
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        /*
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm == null) {
@@ -181,9 +175,9 @@ public class MainActivity extends AppCompatActivity
         }
 
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
-
+*/
         // if internet is connected
-        if (netInfo != null && netInfo.isConnected()) {
+        if (doNetCheck()) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
             // Create an edittext and set it to be the builder's view
@@ -201,11 +195,6 @@ public class MainActivity extends AppCompatActivity
                     String name = et.getText().toString();
                     //func to find stock name from hashmap
                     stockNameFinder(name);
-
-                    //if the input maches multple stocks
-                    //if one stock matches
-                    //no stock found
-
                 }
             }); // click on CANCEL
             builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
@@ -222,9 +211,9 @@ public class MainActivity extends AppCompatActivity
             dialog.show();
             return true;
         } else {
-            //show no internet dialog
+            // shows no internet warning
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("Stocks cannot be updated until an internet connection is established.");
+            builder.setMessage("Stocks Cannot Be Added Without A Network Connection");
             builder.setTitle("No Network Connection");
 
             AlertDialog dialog = builder.create();
@@ -235,34 +224,31 @@ public class MainActivity extends AppCompatActivity
 
     public void stockNameFinder(String userInput) {
 
-        HashMap<String, String> retrieved = new HashMap<>();
-        String curr_symb, curr_name;
+        HashMap<String, String> matchStockHM = new HashMap<>();
+        String curSymbol, curName;
         Set<String> symbols = stockInfo.keySet();
         Iterator name_iterator = symbols.iterator();
 
 
         while (name_iterator.hasNext()) {
-            curr_symb = (String) name_iterator.next();
-            curr_name = stockInfo.get(curr_symb);
+            curSymbol = (String) name_iterator.next();
+            curName = stockInfo.get(curSymbol);
 
             // if it matches more than one name/symbol
-            if (curr_symb.contains(userInput) || curr_name.contains(userInput)) {
-                retrieved.put(curr_symb, curr_name);
-                // display a list of resulting stock symbols and company names in a dialog
-                // add return selected stock from StockLoadRunner
-
+            if (curSymbol.contains(userInput) || curName.contains(userInput)) {
+                matchStockHM.put(curSymbol, curName);
             }
         } // no match found
-        if (retrieved.size() == 0) {
+        if (matchStockHM.size() == 0) {
             noStockDialog(userInput);
         } // matches one stock
-        else if (retrieved.size() == 1) {
-            Set<String> retrieved_symbols = retrieved.keySet();
-            Iterator i = retrieved_symbols.iterator();
+        else if (matchStockHM.size() == 1) {
+            Set<String> matchStockHM_symbols = matchStockHM.keySet();
+            Iterator i = matchStockHM_symbols.iterator();
             loadStockData((String) i.next());
         } else {
             // match more than one stock name/symbol
-            buildStockDialog(retrieved);
+            buildStockDialog(matchStockHM);
         }
     }
 
@@ -279,16 +265,16 @@ public class MainActivity extends AppCompatActivity
         dialog.show();
     }
 
-    protected void buildStockDialog(HashMap<String, String> retrieved) {
-        int num = retrieved.size();
+    protected void buildStockDialog(HashMap<String, String> matchStockHM) {
+        int num = matchStockHM.size();
         final CharSequence[] sArray = new CharSequence[num];
-        Set<String> keys = retrieved.keySet();
+        Set<String> keys = matchStockHM.keySet();
         Iterator riter = keys.iterator();
         final String symbols[] = new String[num];
         int i = 0;
         while (riter.hasNext()) {
             String symbol = riter.next().toString();
-            sArray[i] = symbol + " -> " + retrieved.get(symbol);
+            sArray[i] = symbol + " -> " + matchStockHM.get(symbol);
             i++;
             symbols[i - 1] = symbol;
         }
@@ -340,7 +326,7 @@ public class MainActivity extends AppCompatActivity
         new Thread(stockloaderrunnable).start(); // call run method
         
     }
-/*
+
     private boolean doNetCheck() {
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -352,11 +338,12 @@ public class MainActivity extends AppCompatActivity
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
 
         if (netInfo != null && netInfo.isConnected()) {
-            statusText.setText(R.string.connected);
+            Log.d(TAG, "doNetCheck: connected to internet");
+            return true;
         } else {
-            Log.d(TAG, "doNetCheck: ");
+            Log.d(TAG, "doNetCheck: not connected to internet");
             return false;
         }
     }
-  */
+
 }
