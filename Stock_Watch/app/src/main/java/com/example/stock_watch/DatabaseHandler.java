@@ -11,6 +11,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
 
@@ -29,6 +30,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String SYMBOL = "stockSymbol";
     private static final String COMPANY = "CompanyName";
 
+
     // DB Table Create Code
     private static final String SQL_CREATE_TABLE =
             "CREATE TABLE " + TABLE_NAME + " (" +
@@ -38,19 +40,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     private SQLiteDatabase database;
 
-    public DatabaseHandler(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, DATABASE_NAME, factory, DATABASE_VERSION);
+    public DatabaseHandler(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
         database = getWritableDatabase(); // Inherited from SQLiteOpenHelper
         Log.d(TAG, "DatabaseHandler: C`tor DONE");
     }
 
     // DB Add
-    public void addStock(Stock stock) {
-        Log.d(TAG, "addStock: Adding" + stock.getSymbol());
+    //public void addStock(Stock stock) {
+    public void addStock(HashMap<String, String> stock){
+        Log.d(TAG, "addStock: Adding" + stock.size() );
 
         ContentValues values = new ContentValues();
-        values.put(SYMBOL, stock.getSymbol());
-        values.put(COMPANY, stock.getName());
+        values.put(SYMBOL, stock.get(SYMBOL));
+        values.put(COMPANY, stock.get(COMPANY));
         database.insert(TABLE_NAME, null, values);
 
         Log.d(TAG, "addStock: Add Complete");
@@ -101,6 +104,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             cursor.close();
         }
         return stocks;
+    }
+
+    void dumpDbToLog() {
+        Cursor cursor = database.rawQuery("select * from " + TABLE_NAME, null);
+        if (cursor != null) {
+            cursor.moveToFirst();
+            Log.d(TAG, "dumpDbToLog: ");
+            for (int i = 0; i < cursor.getCount(); i++) {
+                String name = cursor.getString(0);
+                String symbol = cursor.getString(1);
+
+                Log.d(TAG, "dumpDbToLog: " +
+                        String.format("%s %-18s", COMPANY + ":", name) +
+                        String.format("%s %-18s", SYMBOL + ":", symbol) );
+                cursor.moveToNext();
+            }
+            cursor.close();
+        }
+        Log.d(TAG, "dumpDbToLog: ");
     }
 
 }

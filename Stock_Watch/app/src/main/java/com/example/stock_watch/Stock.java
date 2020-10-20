@@ -1,18 +1,28 @@
 package com.example.stock_watch;
 
-public class Stock {
+import java.io.Serializable;
+
+// public class Stock {
+public class Stock implements Serializable{
+
+    // Serializable needed to add as extra to intent
+
     private String name;
     private String symbol;
     private double price;
-    private double price_change;
-    private double change_percent;
+    private double priceChange;
+    private double changePercent;
+    private static  int ctr = 1;
 
-    public Stock(String name, String symbol){
+
+    public Stock(String name, String symbol, double price, double priceChange, double changePercent) {
+        this.name = name;
+        this.symbol = symbol;
         this.price = price;
-        this.price_change = price_change;
-        this.change_percent = change_percent;
-
+        this.priceChange = priceChange;
+        this.changePercent = changePercent;
     }
+
     public String getName() {
         return name;
     }
@@ -26,13 +36,13 @@ public class Stock {
     }
 
     public double getPrice_change() {
-        return price_change;
+        return priceChange;
     }
 
     public double getChange_percent() {
-        return change_percent;
+        return changePercent;
     }
-
+/*
     public void setName(String name) {
         this.name = name;
     }
@@ -45,12 +55,12 @@ public class Stock {
         this.price = price;
     }
 
-    public void setPrice_change(double price_change) {
-        this.price_change = price_change;
+    public void setPrice_change(double priceChange) {
+        this.priceChange = priceChange;
     }
 
-    public void setChange_percent(double change_percent) {
-        this.change_percent = change_percent;
+    public void setChange_percent(double changePercent) {
+        this.changePercent = changePercent;
     }
-
+*/
 }

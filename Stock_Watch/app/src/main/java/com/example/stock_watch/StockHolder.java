@@ -7,16 +7,16 @@ public class StockHolder extends RecyclerView.ViewHolder {
     public TextView symbol;
     public TextView name;
     public TextView price;
-    public TextView price_change;
-    public TextView change_percent;
+    public TextView priceChange;
+    public TextView percentChange;
 
 
     public StockHolder(View itemView) {
         super(itemView);
-        symbol = itemView.findViewById(R.id.tv_symbol);
-        name = itemView.findViewById(R.id.tv_name);
-        price = itemView.findViewById(R.id.stockprice);
-        price_change = itemView.findViewById(R.id.priceChange);
-        change_percent = itemView.findViewById(R.id.priceChangeRate);
+        symbol = itemView.findViewById(R.id.symbol);
+        name = itemView.findViewById(R.id.name);
+        price = itemView.findViewById(R.id.stockPrice);
+        priceChange = itemView.findViewById(R.id.priceChange);
+        percentChange = itemView.findViewById(R.id.priceChangeRate);
     }
 }
