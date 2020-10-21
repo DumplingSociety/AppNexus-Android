@@ -24,15 +24,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -82,28 +77,38 @@ public class MainActivity extends AppCompatActivity
         swiper.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-           //     refresh();
                 Log.d(TAG, "onRefresh: its working ");
+                refresh();
             }
         });
 
     }
 
+    //tap a stock to open the website
     @Override
     public void onClick(View v) {
+        if (doNetCheck()) {
+            int position = recyclerView.getChildLayoutPosition(v);
+            Stock s = stockList.get(position);
 
-        int position = recyclerView.getChildLayoutPosition(v);
-        Stock s = stockList.get(position);
+            Intent chromeIntent = new Intent(Intent.ACTION_VIEW);
+            String url = "https://www.marketwatch.com/investing/stock/" + s.getName();
 
-        Intent chromeIntent = new Intent(Intent.ACTION_VIEW);
-        String url = "https://www.marketwatch.com/investing/stock/" + s.getSymbol();
+            chromeIntent.setData(Uri.parse(url));
+            startActivity(chromeIntent);
+        }
+        else {            // shows no internet warning
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("Stocks Cannot Be Added Without A Network Connection");
+            builder.setTitle("No Network Connection");
 
-        chromeIntent.setData(Uri.parse(url));
-        startActivity(chromeIntent);
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
+        }
     }
 
-
-
+    //long tap to delete a stock
     @Override
     public boolean onLongClick(View v) {
         int  position = recyclerView.getChildLayoutPosition(v);
@@ -111,7 +116,7 @@ public class MainActivity extends AppCompatActivity
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setIcon(R.drawable.baseline_delete_black_24);
         builder.setTitle("Delete Stock");
-        builder.setMessage("Delete Stock Symbol "+delStock.getSymbol()+"?");
+        builder.setMessage("Delete Stock Symbol "+delStock.getName()+"?");
         builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -131,7 +136,6 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
     public void updateData(HashMap<String, String> nameHM) {
 
         // here need a flag to check duplicate stock
@@ -142,8 +146,15 @@ public class MainActivity extends AppCompatActivity
 
     public void addStock(Stock stock) {
 
-        // here need a flag to check duplicate stock
         stockList.add(stock);
+        // sort stock list
+        Collections.sort(stockList, new Comparator<Stock>() {
+            @Override
+            public int compare(Stock stock1, Stock stock2) {
+                String name = stock1.getName();
+                return name.compareTo(stock2.getName());
+            }
+        });
         mAdapter.notifyDataSetChanged();
     }
 
@@ -155,7 +166,6 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-
     // inflates option menu
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -166,16 +176,6 @@ public class MainActivity extends AppCompatActivity
     // option menu
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        /*
-        ConnectivityManager cm =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (cm == null) {
-            Toast.makeText(this, "Cannot access ConnectivityManager", Toast.LENGTH_SHORT).show();
-            return true;
-        }
-
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-*/
         // if internet is connected
         if (doNetCheck()) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -188,7 +188,7 @@ public class MainActivity extends AppCompatActivity
             et.setGravity(Gravity.CENTER_HORIZONTAL);
             builder.setView(et);
 
-
+            // click on OK (build the list of stock that related to the user input)
             builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
@@ -200,7 +200,6 @@ public class MainActivity extends AppCompatActivity
             builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
                     //   Toast.makeText(MainActivity.this, "You changed your mind!", Toast.LENGTH_SHORT).show();
-
                 }
             });
 
@@ -223,12 +222,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void stockNameFinder(String userInput) {
-
-        HashMap<String, String> matchStockHM = new HashMap<>();
         String curSymbol, curName;
+        HashMap<String, String> matchStockHM = new HashMap<>();
+
         Set<String> symbols = stockInfo.keySet();
         Iterator name_iterator = symbols.iterator();
-
 
         while (name_iterator.hasNext()) {
             curSymbol = (String) name_iterator.next();
@@ -266,11 +264,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     protected void buildStockDialog(HashMap<String, String> matchStockHM) {
-        int num = matchStockHM.size();
-        final CharSequence[] sArray = new CharSequence[num];
+        int hashMapSize = matchStockHM.size();
+        final CharSequence[] sArray = new CharSequence[hashMapSize];
         Set<String> keys = matchStockHM.keySet();
         Iterator riter = keys.iterator();
-        final String symbols[] = new String[num];
+        final String symbols[] = new String[hashMapSize];
         int i = 0;
         while (riter.hasNext()) {
             String symbol = riter.next().toString();
@@ -300,19 +298,19 @@ public class MainActivity extends AppCompatActivity
         dialog.show();
     }
 
-
+    // load stock data from runnable and check duplication
     public void loadStockData(String symbol) {
-        Stock newstock;
+        Stock stock;
         Iterator stocks_it = stockList.iterator();
         while (stocks_it.hasNext()) {
-            newstock = (Stock) stocks_it.next();
+            stock = (Stock) stocks_it.next();
 
-            if (newstock.getName().equals(symbol)) {
+            if (stock.getName().equals(symbol)) {
                 // check duplication
                 AlertDialog.Builder builder=new AlertDialog.Builder(this);
                 builder.setIcon(R.drawable.baseline_warning_black_36);
                 builder.setTitle("Duplicate Stock");
-                builder.setMessage("Stock Symbol "+symbol+" is already displayed");
+                builder.setMessage("Stock Symbol " + symbol + " is already displayed");
                 builder.setPositiveButton("OK",new DialogInterface.OnClickListener(){
                     public void onClick(DialogInterface dialog,int id) {
                     }
@@ -327,6 +325,7 @@ public class MainActivity extends AppCompatActivity
         
     }
 
+    // check internet connections
     private boolean doNetCheck() {
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -346,4 +345,48 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    // swiper refresh func
+    public void refresh() {
+
+        // refresh with network connection
+        if(doNetCheck()) {
+            List<Stock> currList = new ArrayList<>(stockList);
+
+            for (int i = stockList.size() - 1; i >= 0; i--) {
+                stockList.remove(i);
+            }
+            stockList.clear();
+
+            for (int i = currList.size() - 1; i >= 0; i--) {
+                Stock s = currList.get(i);
+                String oldStock = s.getName();
+                StockLoaderRunnable stockloaderrunnable = new StockLoaderRunnable(this, oldStock);
+                new Thread(stockloaderrunnable).start(); // call run method
+                mAdapter.notifyDataSetChanged();
+            }
+
+            swiper.setRefreshing(false);
+        }
+        else {
+            //no network refres
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("Stocks Cannot Be Added Without A Network Connection");
+            builder.setTitle("No Network Connection");
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
+            swiper.setRefreshing(false);
+
+            // put all stocks in the dispay with price change and percent change to 0
+            List<Stock> currList = new ArrayList<>(stockList);
+            for (int i = currList.size() - 1; i >= 0; i--) {
+                Stock s = currList.get(i);
+                stockList.remove(i);
+                Stock current = new Stock(s.getName(), s.getSymbol(), 0.0, 0.0, 0.0);
+                addStock(current);
+            }
+
+
+        }
+    }
 }

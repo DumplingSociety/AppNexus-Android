@@ -22,7 +22,7 @@ public class NameLoaderRunnable  implements Runnable {
     private MainActivity mainActivity;  // for passing object back to MainActivity
     private static final String DATA_URL = "https://api.iextrading.com/1.0/ref-data/symbols";
     private static HashMap<String, String> stockInfo = new HashMap<>();
-    private DatabaseHandler databaseHandler;
+ //   private DatabaseHandler databaseHandler;
 
     public NameLoaderRunnable(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -100,7 +100,6 @@ public class NameLoaderRunnable  implements Runnable {
 
 
     // Add symble & names to symbol:name HashMap
-    //private ArrayList<Stock> parseJSON(String s) {
     private HashMap<String, String> parseJSON(String s) {
 
         //ArrayList<Stock> StockList = new ArrayList<>();
@@ -130,9 +129,5 @@ public class NameLoaderRunnable  implements Runnable {
         }
         return null;
     }
-
-
-
-
 
 }

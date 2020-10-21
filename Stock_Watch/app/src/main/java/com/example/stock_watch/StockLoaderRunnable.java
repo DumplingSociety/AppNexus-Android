@@ -103,24 +103,34 @@ public class StockLoaderRunnable  implements Runnable {
 
 
 
-    //private ArrayList<Stock> parseJSON(String s) {
     private Stock parseJSON(String s) {
+        double price = 0.0, priceChange = 0.0, changePercent = 0.0;
 
-        ArrayList<Stock> StockList = new ArrayList<>();
         try {
-            //JSONArray jObjMain = new JSONArray(s);
             JSONObject jObjMain = new JSONObject(s);
 
             String symbol = jObjMain.getString("symbol");
             String name = jObjMain.getString("companyName");
-            Double price = jObjMain.getDouble("latestPrice");
-            Double priceChange = jObjMain.getDouble("change");
-            Double changePercent = jObjMain.getDouble("changePercent");
+
+            String latest = jObjMain.getString("latestPrice");
+            if (latest != null && !latest.trim().isEmpty() && !latest.trim().equals("null")){
+                price = Double.parseDouble(latest.trim());
+            }
+
+            String change = jObjMain.getString("change");
+            if (change != null && !change.trim().isEmpty() && !change.trim().equals("null")){
+                priceChange = Double.parseDouble(change.trim());
+            }
+            String percent = jObjMain.getString("changePercent");
+
+            if (percent != null && !percent.trim().isEmpty() && !percent.trim().equals("null")){
+                changePercent = Double.parseDouble(percent.trim());
+            }
 
             Stock stock = new Stock(symbol, name, price, priceChange, changePercent);
 
             return stock;
-            //       return StockList;
+
         } catch (Exception e) {
             Log.d(TAG, "parseJSON: " + e.getMessage());
             e.printStackTrace();
