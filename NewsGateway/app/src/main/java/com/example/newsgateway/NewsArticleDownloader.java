@@ -25,7 +25,8 @@ public class NewsArticleDownloader implements Runnable {
 
     private NewsService.ServiceReceiver newsService;  // for passing object back to MainActivity
     private static final String DATA_URL = "https://newsapi.org/v2/top-headlines?pageSize=10&sources=";
-    private static final String API_KEY = "e4d90f9c3de947d791d759bc1facabf1";
+	// PLEASE REPLACE THE KEY BEFORE RUNING IT
+    private static final String API_KEY = "ereeerer";
     private String source_id;
     private ArrayList<Article> articles = new ArrayList<>();
     public NewsArticleDownloader(NewsService.ServiceReceiver newsService, String source) {
