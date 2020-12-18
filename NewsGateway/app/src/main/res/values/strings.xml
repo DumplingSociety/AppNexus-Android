@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">News Gateway</string>
+    <string name="news_gateway">News Gateway</string>
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+    <string name="tv_date">tv_date</string>
+    <string name="tv_author">tv_author</string>
+    <string name="tv_text">text</string>
+
+
+</resources>
