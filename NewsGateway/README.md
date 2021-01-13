@@ -4,7 +4,7 @@
 
 Here's a walkthrough of implemented user stories:
 
-<img src='http://g.recordit.co/N86jeoeAiB.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='http://g.recordit.co/nYHQlEDUwO.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
 
 GIF created with [recordit](https://recordit.co/).
 
